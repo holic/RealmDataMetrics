@@ -39,7 +39,7 @@ public class Plugin extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void serverPing(final ServerListPingEvent event) {
         events.track("Server", "Ping", null, null, new HashMap<String, Object>() {{
-            put("IP", event.getAddress().toString());
+            put("IP", event.getAddress().getHostName());
         }});
     }
     

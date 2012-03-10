@@ -142,7 +142,7 @@ public class Events {
                 put("player", new JSONObject() {{
                     put("session", Sessions.getSession(player).toString());
                     put("name", player.getName());
-                    put("ip", player.getAddress().getAddress().toString());
+                    put("ip", player.getAddress().getHostName());
                 }});
             }
             if(location != null) {
