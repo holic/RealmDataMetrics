@@ -31,6 +31,9 @@ public class Events {
     protected final String profile;
     protected final URL url;
     
+    protected final JSONArray events = new JSONArray();
+    
+    
     public Events(String profile) {
         this.profile = profile;
         
@@ -40,6 +43,78 @@ public class Events {
         catch(MalformedURLException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
+        
+        
+        new Thread() {
+            public void run() {
+                while(true) {
+                    try {
+                        sleep(2000);
+                    }
+                    catch(InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    
+                    JSONArray batch;
+                    synchronized(events) {
+                        if(events.isEmpty()) {
+                            continue;
+                        }
+                        else {
+                            batch = new JSONArray();
+                            batch.addAll(events);
+                            events.clear();
+                        }
+                    }
+                    
+                    Date start = new Date();
+
+                    HttpURLConnection conn = null;
+                    try {
+                        conn = (HttpURLConnection) url.openConnection();
+                        conn.setRequestMethod("POST");
+                        conn.setRequestProperty("Content-Type", "application/json");
+
+                        conn.setDoOutput(true);
+                        conn.setDoInput(true);
+                        
+                        OutputStreamWriter or = new OutputStreamWriter(conn.getOutputStream());
+                        String json = batch.toJSONString();
+                        or.write(json);
+                        or.flush();
+                        or.close();
+
+                        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getResponseCode() >= 400 ? conn.getErrorStream() : conn.getInputStream()));
+                        String line;
+                        List<String> lines = new ArrayList<String>();
+                        while((line = br.readLine()) != null) {
+                            lines.add(line);
+                        }
+                        br.close();
+
+
+                        logger.info(String.format("Got response code: %d", conn.getResponseCode()));
+                        if(conn.getResponseCode() == 200) {
+                            logger.info(String.format("Successfully sent %d events", batch.size()));
+                        }
+                        else {
+                            logger.info(StringUtils.join(lines, "\n"));
+                            logger.info(json);
+                        }
+                    }
+                    catch(IOException e) {
+                        e.printStackTrace();
+                    }
+                    finally {
+                        if(conn != null) {
+                            conn.disconnect();
+                        }
+                    }
+
+                    logger.info(String.format("Response took %d ms", new Date().getTime() - start.getTime()));
+                }
+            }
+        }.start();
     }
     
     
@@ -47,7 +122,6 @@ public class Events {
     public void track(final String category, final String name, final Player player, final Location location, final Map<String, Object> meta) {
         if(name == null) throw new IllegalArgumentException("Event name must not be null");
         
-        JSONArray events = new JSONArray();
         events.add(new JSONObject() {{
             put("time", ((double) new Date().getTime()) / 1000);
             put("name", name);
@@ -80,7 +154,6 @@ public class Events {
                 }});
             }
         }});
-        postJson(events);
     }
     
     
