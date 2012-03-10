@@ -84,7 +84,16 @@ public class Plugin extends JavaPlugin implements Listener {
                 events.track("Player", "Block break", event.getPlayer(), event.getBlock().getLocation(), new HashMap<String, Object>() {{
                     put("Type", event.getBlock().getType().toString());
                 }});
+                break;
         }
+    }
+    
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void creatureSpawn(final CreatureSpawnEvent event) {
+        events.track("Creature", "Spawn", null, event.getLocation(), new HashMap<String, Object>() {{
+            put("Type", event.getEntity().getType().toString());
+            put("Reason", event.getSpawnReason().toString());
+        }});
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -110,12 +119,17 @@ public class Plugin extends JavaPlugin implements Listener {
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void entityExplode(final EntityExplodeEvent event) {
-        events.track("Creature", "Explode", null, event.getEntity().getLocation(), new HashMap<String, Object>() {{
-            put("Type", event.getEntity().getType().toString());
-            put("Ticks lived", event.getEntity().getTicksLived());
-            put("Blocks exploded", event.blockList().size());
-            put("Yield", event.getYield());
-        }});
+        switch(event.getEntity().getType()) {
+            case CREEPER:
+            case PRIMED_TNT:
+                events.track("Creature", "Explode", null, event.getEntity().getLocation(), new HashMap<String, Object>() {{
+                    put("Type", event.getEntity().getType().toString());
+                    put("Ticks lived", event.getEntity().getTicksLived());
+                    put("Blocks exploded", event.blockList().size());
+                    put("Yield", event.getYield());
+                }});
+                break;
+        }
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
