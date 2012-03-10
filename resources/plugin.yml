@@ -1,0 +1,7 @@
+name: RealmDataMetrics
+description: Track events for metrics visualizations by RealmData
+author: Kevin Ingersoll
+website: http://realmdata.com/
+
+main: com.realmdata.metrics.Plugin
+version: ${pom.version}
