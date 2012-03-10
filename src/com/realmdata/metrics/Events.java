@@ -1,6 +1,8 @@
 package com.realmdata.metrics;
 
 import java.util.logging.Logger;
+import java.util.logging.Level;
+
 import java.net.URL;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -68,6 +70,7 @@ public class Events {
                     }
                     
                     Date start = new Date();
+                    String json = batch.toJSONString();
 
                     HttpURLConnection conn = null;
                     try {
@@ -79,7 +82,6 @@ public class Events {
                         conn.setDoInput(true);
                         
                         OutputStreamWriter or = new OutputStreamWriter(conn.getOutputStream());
-                        String json = batch.toJSONString();
                         or.write(json);
                         or.flush();
                         or.close();
@@ -93,17 +95,19 @@ public class Events {
                         br.close();
 
 
-                        logger.info(String.format("Got response code: %d", conn.getResponseCode()));
                         if(conn.getResponseCode() == 200) {
+                            logger.info(String.format("Got response code: %d", conn.getResponseCode()));
                             logger.info(String.format("Successfully sent %d events", batch.size()));
                         }
                         else {
-                            logger.info(StringUtils.join(lines, "\n"));
-                            logger.info(json);
+                            logger.warning(String.format("Got response code: %d", conn.getResponseCode()));
+                            logger.warning(StringUtils.join(lines, "\n"));
+                            logger.warning(json);
                         }
                     }
                     catch(IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.WARNING, "Connection or stream failure, events data was not sent to API", e);
+                        logger.warning(json);
                     }
                     finally {
                         if(conn != null) {
