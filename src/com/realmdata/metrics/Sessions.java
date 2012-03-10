@@ -25,6 +25,12 @@ public class Sessions implements Listener {
     public static UUID getSession(OfflinePlayer player) {
         return sessions.get(player);
     }
+    public static UUID getSession(OfflinePlayer player, boolean startIfNull) {
+        UUID uuid = getSession(player);
+        return startIfNull && uuid == null
+                ? startSession(player)
+                : uuid;
+    }
     public static UUID setSession(OfflinePlayer player, UUID uuid) {
         return uuid == null
                 ? sessions.remove(player)

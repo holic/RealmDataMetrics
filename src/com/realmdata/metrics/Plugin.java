@@ -30,6 +30,11 @@ public class Plugin extends JavaPlugin implements Listener {
     
     @Override
     public void onEnable() {
+        // start sessions for online players
+        for(Player player : getServer().getOnlinePlayers()) {
+            Sessions.getSession(player, true);
+        }
+        
         getServer().getPluginManager().registerEvents(Sessions.getInstance(), this);
         getServer().getPluginManager().registerEvents(this, this);
     }
