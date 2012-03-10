@@ -5,3 +5,4 @@ website: http://realmdata.com/
 
 main: com.realmdata.metrics.Plugin
 version: ${pom.version}
+load: STARTUP
