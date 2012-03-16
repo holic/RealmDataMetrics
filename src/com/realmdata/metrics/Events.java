@@ -106,8 +106,13 @@ public class Events {
                         }
                     }
                     catch(IOException e) {
-                        logger.log(Level.WARNING, "Connection or stream failure, events data was not sent to API", e);
-                        logger.warning(json);
+                        logger.warning("Connection or stream failure, events data was not sent to API, requeueing...");
+                        e.printStackTrace();
+                        
+                        // requeue events
+                        synchronized(events) {
+                            events.addAll(batch);
+                        }
                     }
                     finally {
                         if(conn != null) {
@@ -123,42 +128,11 @@ public class Events {
     
     
     
-    public void track(final String category, final String name, final Player player, final Location location, final Map<String, Object> meta) {
-        if(name == null) throw new IllegalArgumentException("Event name must not be null");
-        
-        events.add(new JSONObject() {{
-            put("time", ((double) new Date().getTime()) / 1000);
-            put("name", name);
-            if(category != null) {
-                put("category", category);
-            }
-            if(meta != null) {
-                JSONArray metaArray = new JSONArray();
-                for(final String key : meta.keySet()) {
-                    metaArray.add(new JSONObject() {{
-                        put("name", key);
-                        put("value", meta.get(key));
-                    }});
-                }
-                put("meta", metaArray);
-            }
-            if(player != null) {
-                put("player", new JSONObject() {{
-                    put("session", Sessions.getSession(player).toString());
-                    put("name", player.getName());
-                    put("ip", player.getAddress().getAddress().getHostAddress());
-                }});
-            }
-            if(location != null) {
-                put("location", new JSONObject() {{
-                    put("map", location.getWorld().getName());
-                    put("x", location.getX());
-                    put("y", location.getZ());
-                    put("z", location.getY());
-                }});
-            }
-        }});
+    public void track(Event event) {
+        if(event == null) return;
+        events.add(event);
     }
+    
     
     
 }

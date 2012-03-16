@@ -13,7 +13,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class Sessions implements Listener {
     private static Sessions instance = null;
-    protected static final Map<OfflinePlayer, UUID> sessions = new HashMap<OfflinePlayer, UUID>();
+    protected static final Map<OfflinePlayer, String> sessions = new HashMap<OfflinePlayer, String>();
     
     protected Sessions() { }
     public static Sessions getInstance() {
@@ -22,27 +22,27 @@ public class Sessions implements Listener {
                 : instance;
     }
     
-    public static UUID getSession(OfflinePlayer player) {
+    public static String getSession(OfflinePlayer player) {
         return sessions.get(player);
     }
-    public static UUID getSession(OfflinePlayer player, boolean startIfNull) {
-        UUID uuid = getSession(player);
-        return startIfNull && uuid == null
+    public static String getSession(OfflinePlayer player, boolean startIfNull) {
+        String session = getSession(player);
+        return startIfNull && session == null
                 ? startSession(player)
-                : uuid;
+                : session;
     }
-    public static UUID setSession(OfflinePlayer player, UUID uuid) {
-        return uuid == null
+    public static String setSession(OfflinePlayer player, String session) {
+        return session == null
                 ? sessions.remove(player)
-                : sessions.put(player, uuid);
+                : sessions.put(player, session);
     }
     
-    public static UUID startSession(OfflinePlayer player) {
-        UUID uuid = UUID.randomUUID();
-        setSession(player, uuid);
-        return uuid;
+    public static String startSession(OfflinePlayer player) {
+        String session = UUID.randomUUID().toString();
+        setSession(player, session);
+        return session;
     }
-    public static UUID endSession(OfflinePlayer player) {
+    public static String endSession(OfflinePlayer player) {
         return setSession(player, null);
     }
     

@@ -21,6 +21,7 @@ import org.bukkit.event.world.*;
 import org.bukkit.event.weather.*;
 import org.bukkit.event.server.*;
 
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Creature;
 
@@ -43,28 +44,22 @@ public class Plugin extends JavaPlugin implements Listener {
     
     @EventHandler(priority = EventPriority.MONITOR)
     public void serverPing(final ServerListPingEvent event) {
-        events.track("Server", "Ping", null, null, new HashMap<String, Object>() {{
-            put("IP", event.getAddress().getHostAddress());
-        }});
+        events.track(new Event("Server ping", "Server", "Ping").setUser(null, null, event.getAddress().getHostAddress()));
     }
     
     @EventHandler(priority = EventPriority.MONITOR)
     public void playerLogin(final PlayerLoginEvent event) {
-        events.track("Server", "Login", null, null, new HashMap<String, Object>() {{
-            put("Player", event.getPlayer().getName());
-            put("Hostname", event.getHostname());
-            put("Result", event.getResult().toString());
-        }});
+        events.track(new Event("Player login", "Player", "Login", event.getHostname(), event.getResult().toString()).setUser(event.getPlayer()));
     }
     
     @EventHandler
     public void playerJoin(PlayerJoinEvent event) {
-        events.track("Player", "Join", event.getPlayer(), event.getPlayer().getLocation(), null);
+        events.track(new Event("Player join", "Player", "Join").setUser(event.getPlayer()).setPlace(event.getPlayer().getLocation()));
     }
     
     @EventHandler
     public void playerQuit(PlayerQuitEvent event) {
-        events.track("Player", "Quit", event.getPlayer(), event.getPlayer().getLocation(), null);
+        events.track(new Event("Player quit", "Player", "Quit").setUser(event.getPlayer()).setPlace(event.getPlayer().getLocation()));
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -86,67 +81,55 @@ public class Plugin extends JavaPlugin implements Listener {
             case OBSIDIAN:
             case MOSSY_COBBLESTONE:
             case MOB_SPAWNER:
-                events.track("Player", "Block break", event.getPlayer(), event.getBlock().getLocation(), new HashMap<String, Object>() {{
-                    put("Type", event.getBlock().getType().toString());
-                }});
+                events.track(new Event("Player break block", "Player", "Block", event.getBlock().getType().toString()).setUser(event.getPlayer()).setPlace(event.getBlock().getLocation()));
                 break;
         }
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void creatureSpawn(final CreatureSpawnEvent event) {
-        events.track("Creature", "Spawn", null, event.getLocation(), new HashMap<String, Object>() {{
-            put("Type", event.getEntity().getType().toString());
-            put("Reason", event.getSpawnReason().toString());
-        }});
+        events.track(new Event("Creature spawn", "Creature", "Spawn", event.getEntity().getType().toString(), event.getSpawnReason().toString()).setPlace(event.getLocation()));
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void entityDeath(final EntityDeathEvent event) {
+        Entity entity = event.getEntity();
+        EntityDamageEvent lastDamage = entity.getLastDamageCause();
         if(event.getEntity() instanceof Creature) {
-            events.track("Creature", "Death", null, event.getEntity().getLocation(), new HashMap<String, Object>() {{
-                put("Type", event.getEntity().getType().toString());
-                put("Ticks lived", event.getEntity().getTicksLived());
-                put("Exp dropped", event.getDroppedExp());
-                if(event.getEntity().getLastDamageCause() != null) {
-                    put("Cause", event.getEntity().getLastDamageCause().getCause().toString());
-                }
-            }});
+            events.track(new Event("Creature death", "Creature", "Death", entity.getType().toString(), lastDamage == null ? "Unknown cause" : lastDamage.getCause().toString()).setPlace(entity.getLocation()));
         }
         else if(event.getEntity() instanceof Player) {
-            events.track("Player", "Death", (Player) event.getEntity(), event.getEntity().getLocation(), new HashMap<String, Object>() {{
-                put("Cause", event.getEntity().getLastDamageCause().getCause().toString());
-                put("Ticks lived", event.getEntity().getTicksLived());
-                put("Exp dropped", event.getDroppedExp());
-            }});
+            events.track(new Event("Player death", "Player", "Death", lastDamage == null ? "Unknown cause" : lastDamage.getCause().toString()).setUser((Player) entity).setPlace(entity.getLocation()));
         }
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void entityExplode(final EntityExplodeEvent event) {
+        Entity entity = event.getEntity();
         switch(event.getEntity().getType()) {
             case CREEPER:
+                events.track(new Event("Creeper explode", "Creature", "Explode", entity.getType().toString()).setPlace(entity.getLocation()));
+                break;
             case PRIMED_TNT:
-                events.track("Creature", "Explode", null, event.getEntity().getLocation(), new HashMap<String, Object>() {{
-                    put("Type", event.getEntity().getType().toString());
-                    put("Ticks lived", event.getEntity().getTicksLived());
-                    put("Blocks exploded", event.blockList().size());
-                    put("Yield", event.getYield());
-                }});
+                events.track(new Event("TNT explode", "Block", "Explode", entity.getType().toString()).setPlace(entity.getLocation()));
                 break;
         }
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void lightningStrike(final LightningStrikeEvent event) {
-        events.track("World", "Lightning strike", null, event.getLightning().getLocation(), null);
+        events.track(new Event("Lightning strike", "World", "Weather").setPlace(event.getLightning().getLocation()));
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void structureGrow(final StructureGrowEvent event) {
-        events.track(event.getPlayer() == null ? "World" : "Player", "Grow tree", event.getPlayer(), event.getLocation(), new HashMap<String, Object>() {{
-            put("Type", event.getSpecies().toString());
-        }});
+        Player player = event.getPlayer();
+        if(player != null) {
+            events.track(new Event("Player grow tree", "Player", "Grow", "Structure", "Tree", event.getSpecies().toString()).setUser(player).setPlace(event.getLocation()));
+        }
+        else {
+            events.track(new Event("Tree grow", "World", "Grow", "Structure", "Tree", event.getSpecies().toString()).setPlace(event.getLocation()));
+        }
     }
     
     
