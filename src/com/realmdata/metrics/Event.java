@@ -1,11 +1,13 @@
 package com.realmdata.metrics;
 
 import java.util.Date;
+import java.util.Collections;
 
 import org.apache.commons.lang.Validate;
 
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
 
 import org.bukkit.entity.Player;
 import org.bukkit.Location;
@@ -23,7 +25,9 @@ public class Event implements JSONAware {
         event.put("time", ((double) new Date().getTime()) / 1000);
         event.put("name", name);
         if(tags != null && tags.length > 0) {
-            event.put("tags", tags);
+            JSONArray array = new JSONArray();
+            Collections.addAll(array, tags);
+            event.put("tags", array);
         }
         
     }

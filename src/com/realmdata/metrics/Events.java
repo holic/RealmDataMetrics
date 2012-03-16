@@ -102,7 +102,11 @@ public class Events {
                         else {
                             logger.warning(String.format("Got response code: %d", conn.getResponseCode()));
                             logger.warning(StringUtils.join(lines, "\n"));
-                            logger.warning(json);
+                            
+                            // requeue events
+                            synchronized(events) {
+                                events.addAll(batch);
+                            }
                         }
                     }
                     catch(IOException e) {
