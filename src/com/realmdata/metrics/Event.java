@@ -42,7 +42,7 @@ public class Event implements JSONAware {
             event.remove("user");
             return this;
         }
-        return setUser(Sessions.getSession(player).toString(), player.getName(), player.getAddress().getAddress().getHostAddress());
+        return setUser(Sessions.getSession(player), player.getName(), player.getAddress().getAddress().getHostAddress());
     }
     public Event setUser(String session, String name, String ip) {
         JSONObject user = getOrPutObject(event, "user");
