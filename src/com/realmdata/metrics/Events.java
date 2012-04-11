@@ -105,7 +105,7 @@ public class Events {
                             
                             // requeue events
                             synchronized(events) {
-                                events.addAll(batch);
+                                //events.addAll(batch);
                             }
                         }
                     }
