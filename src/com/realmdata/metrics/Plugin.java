@@ -3,11 +3,6 @@ package com.realmdata.metrics;
 import java.util.logging.Level;
 import java.text.MessageFormat;
 
-import java.util.Map;
-import java.util.HashMap;
-
-import org.json.simple.JSONObject;
-
 import org.bukkit.plugin.java.JavaPlugin;
 
 import org.bukkit.event.EventHandler;
@@ -25,19 +20,29 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Creature;
 
+import org.bukkit.Bukkit;
+
 
 public class Plugin extends JavaPlugin implements Listener {
-    protected final Events events = new Events("iron.minecarts.com");
+    protected Events events;
     
     @Override
     public void onEnable() {
+        events = new Events("iron.minecarts.com");
+        Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, events, 20, 20);
+        
         // start sessions for online players
         for(Player player : getServer().getOnlinePlayers()) {
             Sessions.getSession(player, true);
         }
         
-        getServer().getPluginManager().registerEvents(Sessions.getInstance(), this);
-        getServer().getPluginManager().registerEvents(this, this);
+        Bukkit.getPluginManager().registerEvents(Sessions.getInstance(), this);
+        Bukkit.getPluginManager().registerEvents(this, this);
+    }
+    
+    @Override
+    public void onDisable() {
+        events.flush();
     }
     
     
